@@ -1,13 +1,11 @@
-import { ThemeProvider, DefaultTheme } from '@react-navigation/native';
-import { Stack } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import 'react-native-reanimated';
+import { Stack } from "expo-router";
 
 export default function RootLayout() {
   return (
-    <ThemeProvider value={DefaultTheme}>
-      <Stack screenOptions={{ headerShown: false }} />
-      <StatusBar style="light" />
-    </ThemeProvider>
+    <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="index" />
+      <Stack.Screen name="home" />
+      <Stack.Screen name="(drawer)" />
+    </Stack>
   );
 }

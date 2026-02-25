@@ -1,28 +1,38 @@
 import React, { useEffect, useRef } from "react";
-import { View, Text, StyleSheet, Animated } from "react-native";
-import { useFonts } from "expo-font";
+import { View, StyleSheet, Animated } from "react-native";
+import { useRouter } from "expo-router";
+import { useFonts, Cairo_700Bold } from "@expo-google-fonts/cairo";
 
-export default function AllahAkbar() {
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  const scaleAnim = useRef(new Animated.Value(0.8)).current;
+export default function Intro() {
+  const router = useRouter();
+
+  const opacity = useRef(new Animated.Value(0)).current;
+  const scale = useRef(new Animated.Value(0.9)).current;
 
   const [fontsLoaded] = useFonts({
-    CairoBold: require("./assets/fonts/Cairo-Bold.ttf"), // Put Google Cairo font in assets/fonts
+    Cairo_700Bold,
   });
 
   useEffect(() => {
     Animated.parallel([
-      Animated.timing(fadeAnim, {
+      Animated.timing(opacity, {
         toValue: 1,
-        duration: 1500,
+        duration: 1000,
         useNativeDriver: true,
       }),
-      Animated.spring(scaleAnim, {
+      Animated.spring(scale, {
         toValue: 1,
-        friction: 4,
+        friction: 5,
         useNativeDriver: true,
       }),
     ]).start();
+
+    // redirect after 2.5s
+    const timeout = setTimeout(() => {
+      router.replace("/home"); // replace prevents going back
+    }, 2500);
+
+    return () => clearTimeout(timeout);
   }, []);
 
   if (!fontsLoaded) return null;
@@ -32,10 +42,7 @@ export default function AllahAkbar() {
       <Animated.Text
         style={[
           styles.text,
-          {
-            opacity: fadeAnim,
-            transform: [{ scale: scaleAnim }],
-          },
+          { opacity, transform: [{ scale }] },
         ]}
       >
         الله أكبر
@@ -52,8 +59,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#ffffff",
   },
   text: {
-    fontSize: 42,
-    fontFamily: "CairoBold",
-    color: "#0F172A",
+    fontSize: 44,
+    fontFamily: "Cairo_700Bold",
   },
 });
