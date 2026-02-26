@@ -1,45 +1,22 @@
-import { View, Text, StyleSheet, Pressable } from "react-native";
-import { useRouter } from "expo-router";
-import TopBar from "../components/TopBar";
+import React from "react";
+import { View, Text, StyleSheet, ScrollView } from "react-native";
+import TopBar from "@/components/TopBar";
 
-// Ensure TopBar accepts a 'title' prop
-type TopBarProps = { title: string };
-
-// If TopBar is a function component, re-declare it here for type safety (temporary fix)
-// Remove this if TopBar already accepts props correctly in its own file
-// const TopBar: React.FC<TopBarProps> = (props) => <View><Text>{props.title}</Text></View>;
-const items = [
-  { key: "assab7", title: "ورد الصباح", subtitle: "سورة الواقعة" },
-  { key: "almasae", title: "ورد المساء", subtitle: "سورة يس" },
-  { key: "allil", title: "ورد الليل", subtitle: "سورة الجن + سورة الملك" },
-];
-
-export default function AwradMenu() {
-  const router = useRouter();
-
+export default function Awrad() {
   return (
     <View style={styles.container}>
-      {/* @ts-expect-error Temporary: TopBar should accept 'title' prop. Remove this line if fixed in TopBar component. */}
-      <TopBar title="الأوراد" />
-
-      <View style={styles.content}>
-        {items.map((it) => (
-          <Pressable
-            key={it.key}
-            onPress={() => router.push({ pathname: "/awrad", params: { key: it.key } })}
-            style={({ pressed }) => [styles.item, pressed && styles.pressed]}
-          >
-            <Text style={styles.itemTitle}>{it.title}</Text>
-            <Text style={styles.itemSub}>{it.subtitle}</Text>
-          </Pressable>
-        ))}
-      </View>
+      <TopBar />
+      <ScrollView contentContainerStyle={styles.content}>
+        <Text style={styles.itemTitle}>قائمة الأوراد</Text>
+        {/* ... */}
+      </ScrollView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#fff" },
+  // let layout supply background
+  container: { flex: 1, backgroundColor: "transparent" },
   content: { padding: 16, gap: 10 },
   item: {
     borderWidth: 1,

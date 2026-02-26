@@ -1,7 +1,8 @@
 import { StyleSheet } from "react-native";
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#F7FFF6" },
+  // layout provides the app background
+  container: { flex: 1, backgroundColor: "transparent" },
   content: { padding: 16, gap: 12 },
 
   headerRow: {
@@ -134,44 +135,6 @@ const styles = StyleSheet.create({
   favoritedLabel: {
     color: "#F59E0B",
     fontWeight: "700",
-  },
-
-  /* Grouped surahs UI */
-  groupContainer: {
-    flexDirection: "row-reverse",
-    gap: 8,
-    marginBottom: 8,
-  },
-
-  smallSurahCard: {
-    flex: 1,
-    backgroundColor: "#F8FAFC",
-    borderRadius: 12,
-    padding: 10,
-    alignItems: "flex-end",
-  },
-
-  smallSurahTitle: {
-    fontSize: 13,
-    fontWeight: "800",
-    color: "#064E3B",
-    textAlign: "right",
-  },
-
-  smallSurahText: {
-    marginTop: 8,
-    fontSize: 14,
-    color: "#0F172A",
-    textAlign: "right",
-    lineHeight: 20,
-  },
-
-  groupActionsRow: {
-    marginTop: 8,
-    flexDirection: "row-reverse",
-    alignItems: "center",
-    justifyContent: "flex-start",
-    gap: 16,
   },
 });
 

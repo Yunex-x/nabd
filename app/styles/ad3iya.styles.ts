@@ -1,7 +1,8 @@
 import { StyleSheet } from "react-native";
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#F7FDF6" },
+  // let layout supply the app background
+  container: { flex: 1, backgroundColor: "transparent" },
   content: { padding: 16, gap: 12 },
 
   headerRow: {

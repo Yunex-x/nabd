@@ -7,7 +7,7 @@ export default function Tasbi7() {
 
   return (
     <View style={styles.container}>
-      <TopBar title="عدّاد التسبيح" />
+      <TopBar />
 
       <View style={styles.content}>
         <Text style={styles.count}>{count}</Text>
@@ -25,7 +25,8 @@ export default function Tasbi7() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#fff" },
+  // let layout provide the app background
+  container: { flex: 1, backgroundColor: "transparent" },
   content: { flex: 1, alignItems: "center", justifyContent: "center", gap: 16, padding: 16 },
   count: { fontSize: 64, fontWeight: "900" },
   bigBtn: {
