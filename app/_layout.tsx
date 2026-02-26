@@ -3,19 +3,17 @@ import { View, StatusBar, Platform } from "react-native";
 import { SafeAreaProvider, useSafeAreaInsets } from "react-native-safe-area-context";
 import { Slot } from "expo-router";
 import { AppBackground } from "@/constants/theme";
-import { useColorScheme } from "@/hooks/use-color-scheme";
 
 function SafeAreaLayout() {
   const insets = useSafeAreaInsets();
-  const colorScheme = useColorScheme() ?? "light";
-  const appBg = AppBackground[colorScheme as "light" | "dark"] ?? AppBackground.light;
+  const appBg = AppBackground.light;
 
   return (
     <View style={{ flex: 1, backgroundColor: appBg }}>
       <StatusBar
         translucent
         backgroundColor={appBg}
-        barStyle={Platform.OS === "ios" ? "dark-content" : "dark-content"}
+        barStyle="dark-content"
       />
 
       {/* top spacer (same color as app background) */}

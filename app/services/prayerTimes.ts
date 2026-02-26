@@ -11,33 +11,59 @@ function cleanTime(t: string) {
   return t.split(" ")[0].trim(); // "05:12 (+01)" -> "05:12"
 }
 
+/**
+ * Fetch prayer times using only latitude, longitude and optional timezone.
+ * Uses api.aladhan.com and requests timings for "today" using the timezone string if provided.
+ *
+ * @param params.latitude
+ * @param params.longitude
+ * @param params.timezone optional IANA timezone string (e.g. "Europe/Cairo"). If not provided, API will infer.
+ * @param params.timeoutMs optional fetch timeout in ms (default 5000)
+ */
 export async function fetchPrayerTimesByCoords(params: {
   latitude: number;
   longitude: number;
-  method?: number; // default 3 (MWL)
-  school?: 0 | 1;  // 0 Shafi/Maliki, 1 Hanafi
-  tune?: string;   // optional "0,0,0,0,0,0,0,0,0"
+  timezone?: string;
+  timeoutMs?: number;
 }): Promise<PrayerTimings> {
-  const { latitude, longitude, method = 3, school = 0, tune } = params;
+  const { latitude, longitude, timezone, timeoutMs = 5000 } = params;
 
-  const base =
-    `https://api.aladhan.com/v1/timings?latitude=${latitude}` +
-    `&longitude=${longitude}&method=${method}&school=${school}`;
+  // Use today's timestamp to avoid server returning unexpected day
+  const timestamp = Math.floor(Date.now() / 1000);
 
-  const url = tune ? `${base}&tune=${encodeURIComponent(tune)}` : base;
+  let url =
+    `https://api.aladhan.com/v1/timings/${timestamp}?latitude=${latitude}` +
+    `&longitude=${longitude}`;
 
-  const res = await fetch(url);
-  if (!res.ok) throw new Error("Failed to fetch prayer times");
+  if (timezone) {
+    url += `&timezonestring=${encodeURIComponent(timezone)}`;
+  }
 
-  const json = await res.json();
-  const t = json?.data?.timings;
+  // Setup abort controller for timeout
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), timeoutMs);
 
-  return {
-    Fajr: cleanTime(t.Fajr),
-    Sunrise: cleanTime(t.Sunrise),
-    Dhuhr: cleanTime(t.Dhuhr),
-    Asr: cleanTime(t.Asr),
-    Maghrib: cleanTime(t.Maghrib),
-    Isha: cleanTime(t.Isha),
-  };
+  try {
+    const res = await fetch(url, { signal: controller.signal });
+    if (!res.ok) throw new Error(`Failed to fetch prayer times: ${res.status}`);
+    const json = await res.json();
+    const t = json?.data?.timings;
+    if (!t) throw new Error("Invalid response from prayer times service");
+
+    return {
+      Fajr: cleanTime(t.Fajr),
+      Sunrise: cleanTime(t.Sunrise),
+      Dhuhr: cleanTime(t.Dhuhr),
+      Asr: cleanTime(t.Asr),
+      Maghrib: cleanTime(t.Maghrib),
+      Isha: cleanTime(t.Isha),
+    };
+  } catch (err: any) {
+    if (err?.name === "AbortError") {
+      throw new Error("Prayer times request timed out");
+    }
+    throw err;
+  } finally {
+    clearTimeout(id);
+  }
 }
