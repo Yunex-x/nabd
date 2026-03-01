@@ -136,7 +136,7 @@ export default function Home() {
         }}
         onNearestMosquePress={() => {
           // navigate to nearest mosque / map screen - change route as needed
-          router.push("/mosques");
+          router.push("/mosqwues");
         }}
         // optional: pass a logo image:
         // logo={require("../assets/logo.png")}
