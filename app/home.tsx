@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { View, Text, ScrollView, Pressable, StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
 import TopBar from "../components/TopBar";
+import BottomBar from "../components/BottomBar";
 import { usePrayerTimes } from "../hooks/usePrayerTimes";
 import styles from "./styles/home.styles";
 import PrayerTimesCard from "./PrayerTimesCard";
@@ -57,7 +58,10 @@ export default function Home() {
     <View style={styles.container}>
       <TopBar />
 
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={[styles.content, { paddingBottom: 120 }]}
+        showsVerticalScrollIndicator={false}
+      >
         <PrayerTimesCard
           loading={loading}
           error={error}
@@ -123,6 +127,20 @@ export default function Home() {
 
         <View style={{ height: 32 }} />
       </ScrollView>
+
+      {/* BottomBar: structure [ القبلة ]  (app logo placeholder)  [ أقرب مسجد ] */}
+      <BottomBar
+        onQiblaPress={() => {
+          // navigate to your qibla screen - change route as needed
+          router.push("/qibla");
+        }}
+        onNearestMosquePress={() => {
+          // navigate to nearest mosque / map screen - change route as needed
+          router.push("/mosques");
+        }}
+        // optional: pass a logo image:
+        // logo={require("../assets/logo.png")}
+      />
     </View>
   );
 }
