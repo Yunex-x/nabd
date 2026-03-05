@@ -138,8 +138,8 @@ export default function Home() {
           // navigate to nearest mosque / map screen - change route as needed
           router.push("/mosques");
         }}
-      // optional: pass a logo image:
-      // logo={require("../assets/logo.png")}
+        // Pass the logo asset here. Add your image at /assets/logo.png in the repo.
+        logo={require("../assets/logo.png")}
       />
     </View>
   );

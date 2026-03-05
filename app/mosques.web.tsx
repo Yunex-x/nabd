@@ -1,11 +1,9 @@
 import { useNearestMosques } from "@/hooks/useNearestMosques";
-import * as Location from "expo-location";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
     ActivityIndicator,
     FlatList,
-    Linking,
     Pressable,
     StyleSheet,
     Text,
@@ -22,28 +20,49 @@ export default function NearestMosquesWebScreen() {
     useEffect(() => {
         let mounted = true;
 
+        // Use browser Geolocation API on web instead of expo-location (native-only).
         (async () => {
             try {
-                const { status } = await Location.requestForegroundPermissionsAsync();
-                if (!mounted) return;
-
-                if (status !== "granted") {
-                    setLocationError("صلاحيات الموقع مرفوضة");
+                if (typeof navigator === "undefined" || !("geolocation" in navigator)) {
+                    setLocationError("متصفّحك لا يدعم تحديد الموقع");
                     setLoadingLocation(false);
                     return;
                 }
 
-                const pos = await Location.getCurrentPositionAsync({
-                    accuracy: Location.Accuracy.Highest,
-                });
-                if (!mounted) return;
+                if ((navigator as any).permissions && typeof (navigator as any).permissions.query === "function") {
+                    try {
+                        const p = await (navigator as any).permissions.query({ name: "geolocation" });
+                        if (!mounted) return;
+                        if (p.state === "denied") {
+                            setLocationError("صلاحيات الموقع مرفوضة");
+                            setLoadingLocation(false);
+                            return;
+                        }
+                    } catch {
+                        // ignore and continue
+                    }
+                }
 
-                setUserLoc({ lat: pos.coords.latitude, lon: pos.coords.longitude });
+                const onSuccess = (pos: GeolocationPosition) => {
+                    if (!mounted) return;
+                    setUserLoc({ lat: pos.coords.latitude, lon: pos.coords.longitude });
+                    setLoadingLocation(false);
+                };
+
+                const onError = (err: GeolocationPositionError) => {
+                    if (!mounted) return;
+                    setLocationError(err?.message || "فشل الحصول على الموقع");
+                    setLoadingLocation(false);
+                };
+
+                navigator.geolocation.getCurrentPosition(onSuccess, onError, {
+                    enableHighAccuracy: true,
+                    maximumAge: 0,
+                    timeout: 15000,
+                });
             } catch (e: any) {
                 if (!mounted) return;
                 setLocationError(e?.message || "فشل الحصول على الموقع");
-            } finally {
-                if (!mounted) return;
                 setLoadingLocation(false);
             }
         })();
@@ -62,12 +81,16 @@ export default function NearestMosquesWebScreen() {
 
     function openDirections(destLat: number, destLon: number) {
         const url = `https://www.google.com/maps/dir/?api=1&destination=${destLat},${destLon}&travelmode=walking`;
-        Linking.openURL(url).catch(() => {
-            const fallback = `https://www.google.com/maps/search/?api=1&query=${destLat},${destLon}`;
-            Linking.openURL(fallback).catch(() => {
+        try {
+            window.open(url, "_blank", "noopener,noreferrer");
+        } catch {
+            try {
+                const fallback = `https://www.google.com/maps/search/?api=1&query=${destLat},${destLon}`;
+                window.open(fallback, "_blank", "noopener,noreferrer");
+            } catch {
                 // ignore
-            });
-        });
+            }
+        }
     }
 
     return (
