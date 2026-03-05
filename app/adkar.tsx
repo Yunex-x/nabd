@@ -1,27 +1,29 @@
-import React, { useEffect, useState, useCallback } from "react";
-import {
-  View,
-  Text,
-  ScrollView,
-  Pressable,
-  Share,
-  Alert,
-  ActivityIndicator,
-} from "react-native";
-import * as Clipboard from "expo-clipboard";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { ADKAR_DATA, MENU_ITEMS } from "@/data/adkar";
+import { NormalizedContentItem } from "@/types";
+import { normalizeAdkarItem } from "@/utils/normalizeContent";
 import { Ionicons } from "@expo/vector-icons";
-import TopBar from "../components/TopBar";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as Clipboard from "expo-clipboard";
+import React, { useCallback, useEffect, useState } from "react";
+import {
+  ActivityIndicator,
+  Alert,
+  Pressable,
+  ScrollView,
+  Share,
+  Text,
+  View,
+} from "react-native";
 import MenuCard from "../components/MenuCard";
+import TopBar from "../components/TopBar";
 import styles from "./styles/adkar.styles";
-import { MENU_ITEMS, ADKAR_DATA, AdkarItem } from "./data/adkar";
 
 export default function AdkarScreen() {
   const [activeKey, setActiveKey] = useState<string | null>(null); // null = show menu
-  const [favorites, setFavorites] = useState<number[]>([]);
+  const [favorites, setFavorites] = useState<string[]>([]);
   const [loadingFav, setLoadingFav] = useState(false);
-  const [copiedId, setCopiedId] = useState<number | null>(null);
-  const [sharingId, setSharingId] = useState<number | null>(null);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [sharingId, setSharingId] = useState<string | null>(null);
 
   const favoritesKeyFor = useCallback((key: string) => `adkar_${key}_favorites_v1`, []);
 
@@ -39,7 +41,7 @@ export default function AdkarScreen() {
         const raw = await AsyncStorage.getItem(favoritesKeyFor(activeKey));
         if (!mounted) return;
         if (raw) {
-          const parsed = JSON.parse(raw) as number[];
+          const parsed = JSON.parse(raw) as string[];
           setFavorites(Array.isArray(parsed) ? parsed : []);
         } else {
           setFavorites([]);
@@ -56,7 +58,7 @@ export default function AdkarScreen() {
     };
   }, [activeKey, favoritesKeyFor]);
 
-  const saveFavorites = async (key: string, list: number[]) => {
+  const saveFavorites = async (key: string, list: string[]) => {
     try {
       await AsyncStorage.setItem(favoritesKeyFor(key), JSON.stringify(list));
     } catch (e) {
@@ -65,7 +67,7 @@ export default function AdkarScreen() {
     }
   };
 
-  const toggleFavorite = (id: number) => {
+  const toggleFavorite = (id: string) => {
     if (!activeKey) return;
     const isFav = favorites.includes(id);
     const next = isFav ? favorites.filter((i) => i !== id) : [...favorites, id];
@@ -73,7 +75,7 @@ export default function AdkarScreen() {
     saveFavorites(activeKey, next);
   };
 
-  const onCopy = async (id: number, text: string) => {
+  const onCopy = async (id: string, text: string) => {
     try {
       await Clipboard.setStringAsync(text);
       setCopiedId(id);
@@ -83,11 +85,11 @@ export default function AdkarScreen() {
     }
   };
 
-  const onShare = async (item: AdkarItem) => {
+  const onShare = async (item: NormalizedContentItem) => {
     try {
       setSharingId(item.id);
       await Share.share({
-        message: `${item.arabic}${item.repeat ? `\n\n(التكرار: ${item.repeat})` : ""}${item.note ? `\n\n${item.note}` : ""}`,
+        message: `${item.text}${item.repetitions ? `\n\n(التكرار: ${item.repetitions})` : ""}${item.note ? `\n\n${item.note}` : ""}`,
       });
     } catch (e) {
       console.warn("share error", e);
@@ -98,7 +100,7 @@ export default function AdkarScreen() {
 
   // render the list cards for a category
   const renderCategory = (key: string) => {
-    const list = ADKAR_DATA[key] ?? [];
+    const list = (ADKAR_DATA[key] ?? []).map((item) => normalizeAdkarItem(item, key));
     if (list.length === 0) {
       return (
         <View style={styles.emptyState}>
@@ -121,22 +123,22 @@ export default function AdkarScreen() {
             <View key={a.id} style={styles.card}>
               <View style={styles.cardHeader}>
                 <Text style={styles.cardTitle}>{a.title ?? `بند ${a.id}`}</Text>
-                {a.repeat ? (
+                {a.repetitions ? (
                   <View style={styles.repeatPill}>
-                    <Text style={styles.repeatText}>▫️ {a.repeat} مرة</Text>
+                    <Text style={styles.repeatText}>▫️ {a.repetitions} مرة</Text>
                   </View>
                 ) : null}
               </View>
 
-              <Text style={styles.arabicText}>{a.arabic}</Text>
+              <Text style={styles.arabicText}>{a.text}</Text>
 
               {a.note ? <Text style={styles.note}>🔹 {a.note}</Text> : null}
 
               <View style={styles.actionsRow}>
                 <Pressable
                   style={styles.actionButton}
-                  onPress={() => onCopy(a.id, `${a.arabic}\n\n${a.repeat ? `التكرار: ${a.repeat}` : ""}${a.note ? `\n${a.note}` : ""}`)}
-                  accessibilityLabel={`نسخ بند ${a.id}`}
+                  onPress={() => onCopy(a.id, `${a.text}\n\n${a.repetitions ? `التكرار: ${a.repetitions}` : ""}${a.note ? `\n${a.note}` : ""}`)}
+                  accessibilityLabel={`نسخ بند ${a.sourceId ?? a.id}`}
                 >
                   {copiedId === a.id ? (
                     <>
@@ -154,7 +156,7 @@ export default function AdkarScreen() {
                 <Pressable
                   style={styles.actionButton}
                   onPress={() => onShare(a)}
-                  accessibilityLabel={`مشاركة بند ${a.id}`}
+                  accessibilityLabel={`مشاركة بند ${a.sourceId ?? a.id}`}
                 >
                   {sharingId === a.id ? (
                     <ActivityIndicator size="small" color="#065F46" />
@@ -169,7 +171,7 @@ export default function AdkarScreen() {
                 <Pressable
                   style={styles.actionButton}
                   onPress={() => toggleFavorite(a.id)}
-                  accessibilityLabel={`حفظ بند ${a.id}`}
+                  accessibilityLabel={`حفظ بند ${a.sourceId ?? a.id}`}
                 >
                   <Ionicons name={isFav ? "bookmark" : "bookmark-outline"} size={18} color={isFav ? "#F59E0B" : "#6B7280"} />
                   <Text style={[styles.actionLabel, isFav ? styles.favoritedLabel : undefined]}>

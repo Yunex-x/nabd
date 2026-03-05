@@ -1,8 +1,9 @@
-import React from "react";
-import { View, StatusBar, Platform } from "react-native";
-import { SafeAreaProvider, useSafeAreaInsets } from "react-native-safe-area-context";
-import { Slot } from "expo-router";
 import { AppBackground } from "@/constants/theme";
+import { Slot } from "expo-router";
+import React from "react";
+import { StatusBar, View } from "react-native";
+import "react-native-get-random-values";
+import { SafeAreaProvider, useSafeAreaInsets } from "react-native-safe-area-context";
 
 function SafeAreaLayout() {
   const insets = useSafeAreaInsets();

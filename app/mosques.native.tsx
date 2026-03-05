@@ -12,7 +12,18 @@ import {
     Text,
     View,
 } from "react-native";
-import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
+
+const mapsModule = (() => {
+    try {
+        return require("react-native-maps");
+    } catch {
+        return null;
+    }
+})();
+
+const MapView = (mapsModule?.default ?? View) as any;
+const Marker = (mapsModule?.Marker ?? (() => null)) as any;
+const PROVIDER_GOOGLE = mapsModule?.PROVIDER_GOOGLE;
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
@@ -23,7 +34,7 @@ export default function NearestMosquesNativeScreen() {
     const [loadingLocation, setLoadingLocation] = useState(true);
     const [locationError, setLocationError] = useState<string | null>(null);
 
-    const mapRef = useRef<MapView | null>(null);
+    const mapRef = useRef<typeof MapView | null>(null);
 
     useEffect(() => {
         let mounted = true;
@@ -121,7 +132,7 @@ export default function NearestMosquesNativeScreen() {
                 ) : (
                     <>
                         <MapView
-                            ref={(r) => {
+                            ref={(r: any) => {
                                 mapRef.current = r;
                             }}
                             provider={PROVIDER_GOOGLE}

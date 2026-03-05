@@ -1,14 +1,31 @@
-import React from "react";
-import { View, Text, StyleSheet, ScrollView } from "react-native";
 import TopBar from "@/components/TopBar";
+import { normalizeAwradItem } from "@/utils/normalizeContent";
+import React, { useMemo } from "react";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
+
+const AWRAD_RAW_ITEMS: Record<string, unknown>[] = [];
 
 export default function Awrad() {
+  const awradItems = useMemo(
+    () => AWRAD_RAW_ITEMS.map((item) => normalizeAwradItem(item, "awrad")),
+    [],
+  );
+
   return (
     <View style={styles.container}>
       <TopBar />
       <ScrollView contentContainerStyle={styles.content}>
         <Text style={styles.itemTitle}>قائمة الأوراد</Text>
-        {/* ... */}
+        {awradItems.length === 0 ? (
+          <Text style={styles.itemSub}>لا توجد بيانات أوراد مهيكلة في المستودع حتى الآن.</Text>
+        ) : (
+          awradItems.map((item) => (
+            <View key={item.id} style={styles.item}>
+              <Text style={styles.itemTitle}>{item.title ?? "ورد"}</Text>
+              <Text style={styles.itemSub}>{item.text}</Text>
+            </View>
+          ))
+        )}
       </ScrollView>
     </View>
   );

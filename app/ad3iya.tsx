@@ -1,26 +1,28 @@
-import React, { useEffect, useState, useCallback } from "react";
-import {
-  View,
-  Text,
-  ScrollView,
-  Pressable,
-  Share,
-  Alert,
-  ActivityIndicator,
-} from "react-native";
-import * as Clipboard from "expo-clipboard";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { MENU_ITEMS, PRAYERS_GROUPS } from "@/data/ad3iya";
+import { NormalizedContentItem } from "@/types";
+import { normalizeAd3iyaItem } from "@/utils/normalizeContent";
 import { Ionicons } from "@expo/vector-icons";
-import TopBar from "../components/TopBar";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as Clipboard from "expo-clipboard";
+import React, { useCallback, useEffect, useState } from "react";
+import {
+  ActivityIndicator,
+  Alert,
+  Pressable,
+  ScrollView,
+  Share,
+  Text,
+  View,
+} from "react-native";
 import MenuCard from "../components/MenuCard";
+import TopBar from "../components/TopBar";
 import styles from "./styles/ad3iya.styles";
-import { MENU_ITEMS, PRAYERS_GROUPS, Prayer } from "./data/ad3iya";
 export default function Ad3iyaScreen() {
   const [activeKey, setActiveKey] = useState<string | null>(null); // null = show menu
-  const [favorites, setFavorites] = useState<number[]>([]);
+  const [favorites, setFavorites] = useState<string[]>([]);
   const [loadingFav, setLoadingFav] = useState(false);
-  const [copiedId, setCopiedId] = useState<number | null>(null);
-  const [sharingId, setSharingId] = useState<number | null>(null);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [sharingId, setSharingId] = useState<string | null>(null);
 
   const favoritesKeyFor = useCallback((key: string) => `ad3iya_${key}_favorites_v1`, []);
 
@@ -37,7 +39,7 @@ export default function Ad3iyaScreen() {
         const raw = await AsyncStorage.getItem(favoritesKeyFor(activeKey));
         if (!mounted) return;
         if (raw) {
-          const parsed = JSON.parse(raw) as number[];
+          const parsed = JSON.parse(raw) as string[];
           setFavorites(Array.isArray(parsed) ? parsed : []);
         } else {
           setFavorites([]);
@@ -54,7 +56,7 @@ export default function Ad3iyaScreen() {
     };
   }, [activeKey, favoritesKeyFor]);
 
-  const saveFavorites = async (key: string, list: number[]) => {
+  const saveFavorites = async (key: string, list: string[]) => {
     try {
       await AsyncStorage.setItem(favoritesKeyFor(key), JSON.stringify(list));
     } catch (e) {
@@ -63,7 +65,7 @@ export default function Ad3iyaScreen() {
     }
   };
 
-  const toggleFavorite = (id: number) => {
+  const toggleFavorite = (id: string) => {
     if (!activeKey) return;
     const isFav = favorites.includes(id);
     const next = isFav ? favorites.filter((i) => i !== id) : [...favorites, id];
@@ -71,7 +73,7 @@ export default function Ad3iyaScreen() {
     saveFavorites(activeKey, next);
   };
 
-  const onCopy = async (id: number, text: string) => {
+  const onCopy = async (id: string, text: string) => {
     try {
       await Clipboard.setStringAsync(text);
       setCopiedId(id);
@@ -81,11 +83,11 @@ export default function Ad3iyaScreen() {
     }
   };
 
-  const onShare = async (p: Prayer) => {
+  const onShare = async (p: NormalizedContentItem) => {
     try {
       setSharingId(p.id);
       await Share.share({
-        message: `${p.title}\n\n${p.arabic}${p.reference ? `\n\n${p.reference}` : ""}`,
+        message: `${p.title ?? ""}\n\n${p.text}${p.reference ? `\n\n${p.reference}` : ""}`,
       });
     } catch (e) {
       console.warn("Share error", e);
@@ -95,7 +97,7 @@ export default function Ad3iyaScreen() {
   };
 
   const renderListForKey = (key: string) => {
-    const list = PRAYERS_GROUPS[key] ?? [];
+    const list = (PRAYERS_GROUPS[key] ?? []).map((item) => normalizeAd3iyaItem(item, key));
     if (list.length === 0) {
       return (
         <View style={styles.emptyState}>
@@ -120,7 +122,7 @@ export default function Ad3iyaScreen() {
                 <Text style={styles.cardTitle}>{p.title}</Text>
               </View>
 
-              <Text style={styles.arabicText}>{p.arabic}</Text>
+              <Text style={styles.arabicText}>{p.text}</Text>
 
               {p.reference ? (
                 <View style={styles.metaRow}>
@@ -134,7 +136,7 @@ export default function Ad3iyaScreen() {
               <View style={styles.actionsRow}>
                 <Pressable
                   style={styles.actionButton}
-                  onPress={() => onCopy(p.id, `${p.title}\n\n${p.arabic}${p.reference ? `\n\n${p.reference}` : ""}`)}
+                  onPress={() => onCopy(p.id, `${p.title ?? ""}\n\n${p.text}${p.reference ? `\n\n${p.reference}` : ""}`)}
                   accessibilityLabel={`نسخ ${p.title}`}
                 >
                   {copiedId === p.id ? (

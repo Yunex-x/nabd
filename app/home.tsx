@@ -1,15 +1,15 @@
-import React, { useEffect, useState } from "react";
-import { View, Text, ScrollView, Pressable, StyleSheet } from "react-native";
-import { useRouter } from "expo-router";
-import TopBar from "../components/TopBar";
-import BottomBar from "../components/BottomBar";
-import { usePrayerTimes } from "../hooks/usePrayerTimes";
-import styles from "./styles/home.styles";
-import PrayerTimesCard from "./PrayerTimesCard";
-import MenuCard from "./MenuCard";
+import type { Verse } from "@/data/verses";
+import { VERSES, VERSE_INDEX_KEY } from "@/data/verses";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import type { Verse } from "./data/verses";
-import { VERSES, VERSE_INDEX_KEY } from "./data/verses";
+import { useRouter } from "expo-router";
+import React, { useEffect, useState } from "react";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import BottomBar from "../components/BottomBar";
+import TopBar from "../components/TopBar";
+import { usePrayerTimes } from "../hooks/usePrayerTimes";
+import MenuCard from "./MenuCard";
+import PrayerTimesCard from "./PrayerTimesCard";
+import styles from "./styles/home.styles";
 
 export default function Home() {
   const router = useRouter();
@@ -138,8 +138,8 @@ export default function Home() {
           // navigate to nearest mosque / map screen - change route as needed
           router.push("/mosques");
         }}
-        // optional: pass a logo image:
-        // logo={require("../assets/logo.png")}
+      // optional: pass a logo image:
+      // logo={require("../assets/logo.png")}
       />
     </View>
   );

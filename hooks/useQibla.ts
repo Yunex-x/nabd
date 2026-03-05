@@ -1,8 +1,8 @@
-import { useEffect, useRef, useState } from "react";
+import getQiblaBearing from "@/utils/getQiblaBearing";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Location from "expo-location";
 import { Magnetometer } from "expo-sensors";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import getQiblaBearing from "@/app/utils/getQiblaBearing";
+import { useEffect, useRef, useState } from "react";
 
 type QiblaState = {
   loading: boolean;
@@ -21,7 +21,12 @@ type QiblaState = {
 const KAABA = { lat: 21.4225, lon: 39.8262 };
 
 /** Haversine distance (km) */
-function haversineDistanceKm(lat1: number, lon1: number, lat2: number, lon2: number) {
+function haversineDistanceKm(
+  lat1: number,
+  lon1: number,
+  lat2: number,
+  lon2: number,
+) {
   const R = 6371; // km
   const toRad = (d: number) => (d * Math.PI) / 180;
   const dLat = toRad(lat2 - lat1);
@@ -80,7 +85,11 @@ async function storeDeclinationToCache(key: string, decl: number) {
  *
  * Returns declination in degrees (positive east), or null on failure.
  */
-async function fetchDeclinationNOAA(lat: number, lon: number, when = new Date()): Promise<number | null> {
+async function fetchDeclinationNOAA(
+  lat: number,
+  lon: number,
+  when = new Date(),
+): Promise<number | null> {
   try {
     const yearDecimal = decimalYear(when);
     const rlat = Math.round(lat * 100) / 100; // 0.01 ~ 1.1 km
@@ -91,7 +100,7 @@ async function fetchDeclinationNOAA(lat: number, lon: number, when = new Date())
     if (cached != null) return cached;
 
     const url = `https://www.ngdc.noaa.gov/geomag-web/calculators/calculateWMM?lat1=${encodeURIComponent(
-      lat
+      lat,
     )}&lon1=${encodeURIComponent(lon)}&startYear=${encodeURIComponent(yearDecimal)}&resultFormat=json&model=WMM`;
 
     const resp = await fetch(url, { method: "GET" });
@@ -106,7 +115,8 @@ async function fetchDeclinationNOAA(lat: number, lon: number, when = new Date())
       else if (typeof res.decl === "number") decl = res.decl;
       else if (typeof res.dec === "number") decl = res.dec;
       else if (typeof res.D === "number") decl = res.D;
-      else if (typeof res.result?.declination === "number") decl = res.result.declination;
+      else if (typeof res.result?.declination === "number")
+        decl = res.result.declination;
       else {
         for (const k of ["declination", "decl", "dec", "D"]) {
           if (k in res) {
@@ -138,7 +148,10 @@ async function fetchDeclinationNOAA(lat: number, lon: number, when = new Date())
  * - subscribes to magnetometer and outputs corrected true heading
  * - computes qibla bearing using getQiblaBearing (great-circle formula you provided)
  */
-export function useQibla(options?: { magnetometerIntervalMs?: number; smooth?: number }) {
+export function useQibla(options?: {
+  magnetometerIntervalMs?: number;
+  smooth?: number;
+}) {
   const [state, setState] = useState<QiblaState>({
     loading: true,
     error: null,
@@ -162,21 +175,36 @@ export function useQibla(options?: { magnetometerIntervalMs?: number; smooth?: n
         const { status } = await Location.requestForegroundPermissionsAsync();
         if (!mounted) return;
         if (status !== "granted") {
-          setState((s) => ({ ...s, loading: false, error: "Location permission denied" }));
+          setState((s) => ({
+            ...s,
+            loading: false,
+            error: "Location permission denied",
+          }));
           return;
         }
 
-        const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Highest });
+        const pos = await Location.getCurrentPositionAsync({
+          accuracy: Location.Accuracy.Highest,
+        });
         if (!mounted) return;
 
         const { latitude, longitude } = pos.coords;
 
         // Use the precise great-circle formula utility
         const qiblaBearing = getQiblaBearing(latitude, longitude);
-        const distanceKm = haversineDistanceKm(latitude, longitude, KAABA.lat, KAABA.lon);
+        const distanceKm = haversineDistanceKm(
+          latitude,
+          longitude,
+          KAABA.lat,
+          KAABA.lon,
+        );
 
         // fetch declination (may return null on failure)
-        const decl = await fetchDeclinationNOAA(latitude, longitude, new Date());
+        const decl = await fetchDeclinationNOAA(
+          latitude,
+          longitude,
+          new Date(),
+        );
         currentDecl = decl ?? 0;
 
         if (!mounted) return;
@@ -220,10 +248,12 @@ export function useQibla(options?: { magnetometerIntervalMs?: number; smooth?: n
             ? prev.heading - (prev.declination ?? 0)
             : magAngle;
 
-        const smoothedMag = prevMagEstimate + (magAngle - prevMagEstimate) * smooth;
+        const smoothedMag =
+          prevMagEstimate + (magAngle - prevMagEstimate) * smooth;
 
         // Apply declination to get true heading: true = magnetic + declination
-        const decl = prev.declination != null ? prev.declination : currentDecl ?? 0;
+        const decl =
+          prev.declination != null ? prev.declination : (currentDecl ?? 0);
         let trueHeading = smoothedMag + decl;
         trueHeading = ((trueHeading % 360) + 360) % 360;
 

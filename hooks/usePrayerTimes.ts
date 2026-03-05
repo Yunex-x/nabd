@@ -1,7 +1,10 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import * as Location from "expo-location";
+import {
+    fetchPrayerTimesByCoords,
+    PrayerTimings,
+} from "@/services/prayerTimes";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { fetchPrayerTimesByCoords, PrayerTimings } from "@/app/services/prayerTimes";
+import * as Location from "expo-location";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 type PrayerKey = keyof PrayerTimings;
 
@@ -121,7 +124,10 @@ export function usePrayerTimes(options?: { timeoutMs?: number }) {
         try {
           const raw = await AsyncStorage.getItem(cacheKey);
           if (raw) {
-            const parsed = JSON.parse(raw) as { ts: number; timings: PrayerTimings };
+            const parsed = JSON.parse(raw) as {
+              ts: number;
+              timings: PrayerTimings;
+            };
             if (parsed && Date.now() - parsed.ts < CACHE_TTL_MS) {
               if (!mounted) return;
               setTimings(parsed.timings);
@@ -148,7 +154,7 @@ export function usePrayerTimes(options?: { timeoutMs?: number }) {
         try {
           await AsyncStorage.setItem(
             cacheKey,
-            JSON.stringify({ ts: Date.now(), timings: fetched })
+            JSON.stringify({ ts: Date.now(), timings: fetched }),
           );
         } catch (e) {
           // ignore cache write errors
