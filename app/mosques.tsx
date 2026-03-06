@@ -1,2 +1,1 @@
-// Platform-specific implementation handled by bundler (.web or .native)// Re-export platform-specific implementation so bundlers pick .web or .native automatically
-export { default } from "./mosques";
+export { default } from "./mosques.native";

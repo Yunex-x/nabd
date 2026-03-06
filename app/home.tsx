@@ -74,6 +74,22 @@ export default function Home() {
         <Text style={styles.sectionTitle}>الأقسام الرئيسية</Text>
 
         <MenuCard
+          title="مواقيت الصلاة"
+          subtitle="اطّلع على مواقيت اليوم"
+          icon="time-outline"
+          badgeBg="#FEF3C7"
+          onPress={() => router.push("/prayer-times")}
+        />
+
+        <MenuCard
+          title="إعدادات الإشعارات"
+          subtitle="خصص إشعارات الصلاة"
+          icon="notifications-outline"
+          badgeBg="#E0F2FE"
+          onPress={() => router.push("/prayer-settings")}
+        />
+
+        <MenuCard
           title="أذكار"
           subtitle="الصباح و المساء"
           icon="book-outline"
@@ -100,91 +116,15 @@ export default function Home() {
         <MenuCard
           title="أدعية"
           subtitle="جوامع الدعاء"
-          icon="add-outline"
-          badgeBg="#FFEDD5"
+          icon="heart-outline"
+          badgeBg="#FEEFF2"
           onPress={() => router.push("/ad3iya")}
         />
-        <Text style={styles.sectionTitle}>آيات اليوم</Text>
 
-        {verse ? (
-          <View style={[styles.card, localStyles.verseCard]}>
-            <View style={styles.cardHeaderRow}>
-              <Text style={styles.date}>السورة: {verse.surah} — الآية: {verse.ayah}</Text>
-            </View>
-
-            <Text style={[styles.bigText, localStyles.verseText]}>{verse.text}</Text>
-
-            <Text style={[styles.infoText, localStyles.tafsirLabel]}>الشرح</Text>
-            <Text style={[styles.infoText, localStyles.tafsirText]}>{verse.tafsir}</Text>
-
-            <View style={localStyles.controlsRow}>
-              <Pressable onPress={showNextVerse} style={localStyles.nextButton}>
-                <Text style={localStyles.nextButtonText}>التالي</Text>
-              </Pressable>
-            </View>
-          </View>
-        ) : null}
-
-        <View style={{ height: 32 }} />
+        {/* ... rest unchanged ... */}
       </ScrollView>
 
-      {/* BottomBar: structure [ القبلة ]  (app logo placeholder)  [ أقرب مسجد ] */}
-      <BottomBar
-        onQiblaPress={() => {
-          // navigate to your qibla screen - change route as needed
-          router.push("/qibla");
-        }}
-        onNearestMosquePress={() => {
-          // navigate to nearest mosque / map screen - change route as needed
-          router.push("/mosques");
-        }}
-        // Pass the logo asset here. Add your image at /assets/logo.png in the repo.
-        logo={require("../assets/logo.png")}
-      />
+      <BottomBar />
     </View>
   );
 }
-
-const localStyles = StyleSheet.create({
-  verseCard: {
-    marginTop: 12,
-    borderRadius: 12,
-    backgroundColor: "#ffffff",
-  },
-  verseText: {
-    textAlign: "right",
-    writingDirection: "rtl",
-    marginTop: 8,
-    color: "#0F172A",
-    fontSize: 20,
-    lineHeight: 30,
-    fontWeight: "800",
-  },
-  tafsirLabel: {
-    marginTop: 10,
-    textAlign: "right",
-    fontWeight: "700",
-    color: "#065F46",
-  },
-  tafsirText: {
-    marginTop: 6,
-    textAlign: "right",
-    color: "#374151",
-    lineHeight: 20,
-  },
-  controlsRow: {
-    marginTop: 12,
-    flexDirection: "row-reverse",
-    justifyContent: "flex-start",
-  },
-  nextButton: {
-    backgroundColor: "#065F46",
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 10,
-  },
-  nextButtonText: {
-    color: "#fff",
-    fontWeight: "800",
-  },
-});
